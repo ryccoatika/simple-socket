@@ -1,4 +1,4 @@
-package com.ryccoatika.socketserver
+package com.ryccoatika.socketserver.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
