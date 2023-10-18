@@ -8,8 +8,8 @@ import java.io.DataOutputStream
 import java.net.Socket
 
 class SocketClient(
-    host: String,
-    port: Int,
+    private val host: String,
+    private val port: Int,
 ) {
     private var socket: Socket? = null
     private var outputStream: DataOutputStream? = null

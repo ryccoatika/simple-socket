@@ -1,5 +1,7 @@
 package com.ryccoatika.simplesocket.ui.server
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -13,19 +15,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ryccoatika.simplesocket.ui.theme.AppTheme
-import com.ryccoatika.socketserver.utils.NetworkUtils
+import com.ryccoatika.socketserver.SocketServerCallback
 import com.ryccoatika.socketserver.SocketServer
+import com.ryccoatika.socketserver.models.Client
+import com.ryccoatika.socketserver.utils.NetworkUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,15 +37,48 @@ fun Server(
     navigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
-    val socketServer = remember { SocketServer(1111) }
     val ipAddress = remember { NetworkUtils.getLocalIpv4Address(context) }
-    val message by socketServer.messages.collectAsState()
+    val connectedClients = remember { mutableStateListOf<Client>() }
+    val incomingMessages = remember { mutableStateMapOf<Client, String>() }
+    val socketServer = remember {
+        SocketServer(1111, object :
+            SocketServerCallback {
+            override fun onClientConnected(client: Client) {
+                Log.i("190401", "onClientConnected: $client")
+                connectedClients += client
+            }
+
+            override fun onClientDisconnected(client: Client) {
+                Log.i("190401", "onClientDisconnected: $client")
+                connectedClients -= connectedClients
+            }
+
+            override fun onMessageReceived(client: Client, message: String) {
+                Log.i("190401", "onMessageReceived: $client, $message")
+                incomingMessages[client] = message
+            }
+        })
+    }
+
+    LaunchedEffect(socketServer) {
+        socketServer.startServer()
+    }
+
+    BackHandler {
+        socketServer.stopServer()
+        navigateUp()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = navigateUp) {
+                    IconButton(
+                        onClick = {
+                            socketServer.stopServer()
+                            navigateUp()
+                        },
+                    ) {
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = "back",
@@ -49,15 +86,6 @@ fun Server(
                     }
                 },
                 title = { Text("Server") },
-                actions = {
-                    TextButton(
-                        onClick = {
-                            socketServer.shutdownServer()
-                        },
-                    ) {
-                        Text("Shutdown")
-                    }
-                }
             )
         },
     ) { paddingValues ->
@@ -73,10 +101,18 @@ fun Server(
             Text(text = "IPAddress: $ipAddress")
             Text(text = "Port: ${socketServer.port}")
             Spacer(Modifier.height(10.dp))
+            Text(text = "Connected Clients:")
+            connectedClients.forEach { client ->
+                Text(text = "address: ${client.hostAddress}")
+                Text(text = "port: ${client.port}")
+                Text(text = "localPort: ${client.localPort}")
+            }
+            Spacer(Modifier.height(10.dp))
             Text(text = "Messages:")
-            message?.let { message ->
-                Text(text = "from: ${message.hostAddress}")
-                Text(text = "message: ${message.message}")
+            incomingMessages.keys.forEach { client ->
+                val message = incomingMessages[client] ?: "-"
+                Text(text = "from: ${client.hostAddress}")
+                Text(text = "message: $message")
             }
         }
     }

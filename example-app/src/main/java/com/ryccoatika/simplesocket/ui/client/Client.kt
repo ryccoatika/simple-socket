@@ -1,7 +1,6 @@
 package com.ryccoatika.simplesocket.ui.client
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -91,7 +90,7 @@ fun Client(
                 )
             )
             Spacer(Modifier.height(5.dp))
-            Row {
+            if (socketClient == null) {
                 OutlinedButton(
                     onClick = {
                         socketClient = try {
@@ -107,32 +106,37 @@ fun Client(
                 ) {
                     Text(text = "Connect")
                 }
+            }
+            if (socketClient != null) {
                 OutlinedButton(
                     onClick = {
                         socketClient?.disconnect()
+                        socketClient = null
                     },
                 ) {
                     Text(text = "Disconnect")
                 }
             }
             Spacer(Modifier.height(30.dp))
-            OutlinedTextField(
-                value = message,
-                label = {
-                    Text(text = "enter message")
-                },
-                onValueChange = {
-                    message = it
-                },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Send,
-                ),
-                keyboardActions = KeyboardActions(
-                    onSend = {
-                        socketClient?.sendMessage(message)
-                    }
+            if (socketClient != null) {
+                OutlinedTextField(
+                    value = message,
+                    label = {
+                        Text(text = "enter message")
+                    },
+                    onValueChange = {
+                        message = it
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Send,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSend = {
+                            socketClient?.sendMessage(message)
+                        }
+                    )
                 )
-            )
+            }
         }
     }
 }
