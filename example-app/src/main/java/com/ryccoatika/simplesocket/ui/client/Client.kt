@@ -1,5 +1,6 @@
 package com.ryccoatika.simplesocket.ui.client
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ryccoatika.simplesocket.ui.theme.AppTheme
 import com.ryccoatika.socketclient.SocketClient
+import com.ryccoatika.socketclient.SocketClientCallback
+import java.lang.Exception
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +43,28 @@ fun Client(
     var host by remember { mutableStateOf("") }
     var port by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf("") }
+    var isConnected by remember { mutableStateOf(false) }
     var socketClient by remember { mutableStateOf<SocketClient?>(null) }
+    val socketClientCallback = remember {
+        object : SocketClientCallback {
+            override fun onConnected() {
+                Log.i("190401", "onConnected")
+                isConnected = true
+            }
+
+            override fun onConnectionFailure(e: Exception) {
+                Log.i("190401", "onConnectFailure: $e")
+                isConnected = false
+                socketClient = null
+            }
+
+            override fun onDisconnected() {
+                Log.i("190401", "onDisconnected")
+                isConnected = false
+                socketClient = null
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -72,6 +96,7 @@ fun Client(
                 label = {
                     Text(text = "ip address")
                 },
+                enabled = !isConnected,
                 onValueChange = {
                     host = it
                 },
@@ -82,6 +107,7 @@ fun Client(
                 label = {
                     Text(text = "port")
                 },
+                enabled = !isConnected,
                 onValueChange = {
                     port = it.toIntOrNull() ?: 0
                 },
@@ -90,24 +116,19 @@ fun Client(
                 )
             )
             Spacer(Modifier.height(5.dp))
-            if (socketClient == null) {
+            if (!isConnected) {
                 OutlinedButton(
                     onClick = {
-                        socketClient = try {
-                            SocketClient(
-                                host = host,
-                                port = port
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            null
+                        socketClient = SocketClient(host, port).also {
+                            it.setSocketClientCallback(socketClientCallback)
+                            it.connect()
                         }
                     },
                 ) {
                     Text(text = "Connect")
                 }
             }
-            if (socketClient != null) {
+            if (isConnected) {
                 OutlinedButton(
                     onClick = {
                         socketClient?.disconnect()
@@ -118,7 +139,7 @@ fun Client(
                 }
             }
             Spacer(Modifier.height(30.dp))
-            if (socketClient != null) {
+            if (isConnected) {
                 OutlinedTextField(
                     value = message,
                     label = {

@@ -1,7 +1,5 @@
 package com.ryccoatika.socketserver;
 
-import androidx.annotation.NonNull;
-
 import com.ryccoatika.socketserver.models.Client;
 import com.ryccoatika.socketserver.utils.Mappers;
 
@@ -13,22 +11,20 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class SocketServer {
     private final ServerSocket serverSocket;
-    @NonNull
-    private final SocketServerCallback socketServerCallback;
+    private SocketServerCallback socketServerCallback;
     volatile boolean keepProcessing = true;
     volatile HashMap<Client, Socket> connectedClients = new HashMap<>();
 
-    public SocketServer(@NonNull SocketServerCallback socketServerCallback) throws IOException {
+    public SocketServer() throws IOException {
         serverSocket = new ServerSocket();
-        this.socketServerCallback = socketServerCallback;
     }
 
-    public SocketServer(int port, @NonNull SocketServerCallback socketServerCallback) throws IOException {
+    public SocketServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        this.socketServerCallback = socketServerCallback;
     }
 
     /**
@@ -41,7 +37,9 @@ public class SocketServer {
                     Socket socket = serverSocket.accept();
                     Client client = Mappers.map(socket);
                     connectedClients.put(client, socket);
-                    socketServerCallback.onClientConnected(client);
+                    if (Objects.nonNull(socketServerCallback)) {
+                        socketServerCallback.onClientConnected(client);
+                    }
                     handleIncomingMessageListener(client, socket);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -55,10 +53,23 @@ public class SocketServer {
     public void stopServer() {
         keepProcessing = false;
         try {
+            for (Socket socket : connectedClients.values()) {
+                try {
+                    socket.shutdownInput();
+                    socket.shutdownOutput();
+                    socket.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             serverSocket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void setSocketServerCallback(SocketServerCallback socketServerCallback) {
+        this.socketServerCallback = socketServerCallback;
     }
 
 
@@ -69,9 +80,13 @@ public class SocketServer {
                 try {
                     DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                     String message = dataInputStream.readUTF();
-                    socketServerCallback.onMessageReceived(client, message);
+                    if (Objects.nonNull(socketServerCallback)) {
+                        socketServerCallback.onMessageReceived(client, message);
+                    }
                 } catch (EOFException e) {
-                    socketServerCallback.onClientDisconnected(client);
+                    if (Objects.nonNull(socketServerCallback)) {
+                        socketServerCallback.onClientDisconnected(client);
+                    }
                     keepProcessing = false;
                 } catch (Exception e) {
                     e.printStackTrace();

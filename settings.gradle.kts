@@ -1,8 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-include(":socketserver")
-
-
 pluginManagement {
     repositories {
         google()
@@ -19,5 +16,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Simple Socket"
-include(":example-app")
 include(":socketclient")
+include(":socketserver")
+include(":example-app")

@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-
     implementation(project(":socketclient"))
     implementation(project(":socketserver"))
     implementation("androidx.core:core-ktx:1.12.0")

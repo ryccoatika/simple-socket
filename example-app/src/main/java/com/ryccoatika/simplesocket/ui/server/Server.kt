@@ -41,7 +41,11 @@ fun Server(
     val connectedClients = remember { mutableStateListOf<Client>() }
     val incomingMessages = remember { mutableStateMapOf<Client, String>() }
     val socketServer = remember {
-        SocketServer(1111, object :
+        SocketServer(1111)
+    }
+
+    LaunchedEffect(socketServer) {
+        socketServer.setSocketServerCallback(object :
             SocketServerCallback {
             override fun onClientConnected(client: Client) {
                 Log.i("190401", "onClientConnected: $client")
@@ -58,9 +62,6 @@ fun Server(
                 incomingMessages[client] = message
             }
         })
-    }
-
-    LaunchedEffect(socketServer) {
         socketServer.startServer()
     }
 
