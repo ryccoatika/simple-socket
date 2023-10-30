@@ -1,3 +1,51 @@
+Simple Socket
+-------
+[![Android CI](https://github.com/ryccoatika/simple-socket/actions/workflows/android.yml/badge.svg)](https://github.com/ryccoatika/simple-socket/actions/workflows/android.yml)
+[![Release](https://img.shields.io/github/v/release/ryccoatika/simple-socket.svg?include_prereleases)](https://github.com/ryccoatika/simple-socket/releases)
+
+<img src="art/video_sample.gif" title="Animated example." align="right"/>
+
+Usage
+-------
+
+
+Sample apps
+-------
+
+<img src="art/screenshot_sample.png" title="Example screenshot." width="225" height="400" align="right"/>
+
+
+Download
+-------
+All artifacts are up on Maven Central
+
+For socket server library
+```
+com.ryccoatika.simplesocket:socket-server:<version>
+```
+For socket client library
+```
+com.ryccoatika.simplesocket:socket-client:<version>
+```
+
+latest stable version is [![Release](https://img.shields.io/github/v/release/ryccoatika/simple-socket.svg?include_prereleases)](https://github.com/ryccoatika/simple-socket/releases)
+
+### Snapshots
+
+Snapshots are also available by adding the repository
+```kotlin
+maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+```
+Letting you specify
+```
+com.ryccoatika.simplesocket:socket-server:0.6.9-SNAPSHOT
+com.ryccoatika.simplesocket:socket-client:0.6.9-SNAPSHOT
+```
+
+Contributing
+-------
+Pull requests are welcome.
+
 License
 -------
     MIT License
