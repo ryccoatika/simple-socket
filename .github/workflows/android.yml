@@ -21,7 +21,7 @@ jobs:
       - name: Set variables for versions
         run: |
           VERSION_NAME=`cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2`
-          IS_SNAPSHOT=$( [[ "$github.ref" == "refs/heads/snapshot" ]] ) && echo "1" || echo "0" )
+          IS_SNAPSHOT=$( [[ github.ref == "refs/heads/snapshot" ]] && echo "1" || echo "0" )
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
           echo "IS_SNAPSHOT=$IS_SNAPSHOT" >> $GITHUB_ENV
 
