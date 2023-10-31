@@ -13,7 +13,10 @@ plugins {
 
 allprojects {
     group = properties["GROUP"]!!
-    version = properties["VERSION_NAME"]!!
+    version =  properties["VERSION_NAME"]!!
+    if (properties["IS_SNAPSHOT"] == "1") {
+        version = "$version-SNAPSHOT"
+    }
 
     pluginManager.withPlugin("com.android.application") {
         configureAndroidProject()

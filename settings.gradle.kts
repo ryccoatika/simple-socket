@@ -18,4 +18,4 @@ dependencyResolutionManagement {
 rootProject.name = "Simple Socket"
 include(":socket-client")
 include(":socket-server")
-include(":example-app")
+include(":sample-app")

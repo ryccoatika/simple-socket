@@ -18,10 +18,19 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
+      - name: Set variables for versions
+        run: |
+          VERSION_NAME=`cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2`
+          IS_SNAPSHOT=$( [[ "$github.ref" == "refs/heads/snapshot" ]] ) && echo "1" || echo "0" )
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "IS_SNAPSHOT=$IS_SNAPSHOT" >> $GITHUB_ENV
+
       - name: Generate release notes
+        if: github.ref == 'refs/heads/main'
         run: ./gradlew -q getChangelog >> RELEASE_NOTES.md
 
       - name: Release on Github
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.VERSION_NAME }}
@@ -33,6 +42,7 @@ jobs:
       - name: Release to sonatype
         run: ./gradlew publish --no-daemon --no-parallel
         env:
+          ORG_GRADLE_PROJECT_IS_SNAPSHOT: ${{ env.IS_SNAPSHOT }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
