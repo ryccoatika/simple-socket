@@ -1,0 +1,50 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - snapshot
+      - main
+
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Set variables for versions
+        run: |
+          VERSION_NAME=`cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2`
+          IS_SNAPSHOT=$( [[ github.ref == "refs/heads/snapshot" ]] && echo "1" || echo "0" )
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "IS_SNAPSHOT=$IS_SNAPSHOT" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        if: github.ref == 'refs/heads/main'
+        run: ./gradlew -q getChangelog >> RELEASE_NOTES.md
+
+      - name: Release on Github
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION_NAME }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            socket-server/build/outputs/aar/socket-client-release.aar
+            socket-client/build/outputs/aar/socket-client-release.aar
+
+      - name: Release to sonatype
+        run: ./gradlew publish --no-daemon --no-parallel
+        env:
+          ORG_GRADLE_PROJECT_IS_SNAPSHOT: ${{ env.IS_SNAPSHOT }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
