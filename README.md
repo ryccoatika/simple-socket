@@ -118,6 +118,7 @@ Pull requests are welcome.
 
 TODO:
 - Add callback for server message to client
+- Server Discovery for client
 - Generate mkdocs
 - Thread safe optimization (have to make sure for thread safe)
 
