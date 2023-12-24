@@ -121,7 +121,6 @@ Contributing
 Pull requests are welcome.
 
 TODO:
-- Server discovery
 - Generate mkdocs
 - Thread safe optimization (have to make sure for thread safe)
 
