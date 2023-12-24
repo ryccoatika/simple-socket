@@ -7,5 +7,7 @@ public interface SocketClientCallback {
 
     void onConnectionFailure(@NonNull Exception e);
 
+    void onMessageReceived(@NonNull String message);
+
     void onDisconnected();
 }

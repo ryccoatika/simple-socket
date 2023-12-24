@@ -65,6 +65,10 @@ val socketClientCallback = object : SocketClientCallback {
     override fun onDisconnected() {
         // called when client call disconnect() or server has gone
     }
+
+    override fun onMessageReceived(message: String) {
+        // message received from server
+    }
 }
 socketClient.setSocketClientCallback(socketClientCallback)
 ```
@@ -117,7 +121,7 @@ Contributing
 Pull requests are welcome.
 
 TODO:
-- Add callback for server message to client
+- Server discovery
 - Generate mkdocs
 - Thread safe optimization (have to make sure for thread safe)
 
