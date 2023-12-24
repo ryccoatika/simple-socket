@@ -3,7 +3,8 @@
 ## [0.7.0]
 
 Update:
-    - New callback on Client for receiving message from Server
+    - feat: New callback on Client for receiving message from Server
+    - feat: Server able to disconnect client
 
 ## [0.6.9]
 
