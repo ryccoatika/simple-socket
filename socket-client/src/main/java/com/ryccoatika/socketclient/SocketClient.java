@@ -1,6 +1,8 @@
 package com.ryccoatika.socketclient;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.net.Socket;
 import java.util.Objects;
 
@@ -8,6 +10,9 @@ public class SocketClient {
     private Socket socket;
     private final String host;
     private final int port;
+
+    volatile boolean keepProcessing = true;
+
     private SocketClientCallback socketClientCallback;
 
     public SocketClient(String host, int port) {
@@ -19,6 +24,8 @@ public class SocketClient {
         Runnable connectHandler = () -> {
             try {
                 socket = new Socket(host, port);
+
+                handleIncomingMessageListener(socket);
                 if (Objects.nonNull(socketClientCallback)) {
                     socketClientCallback.onConnected();
                 }
@@ -59,6 +66,31 @@ public class SocketClient {
         };
         Thread sendMessageThread = new Thread(sendMessageHandler);
         sendMessageThread.start();
+    }
+
+    private void handleIncomingMessageListener(Socket socket) {
+        Runnable listenMessageHandler = () -> {
+            boolean keepProcessing = true;
+            while (this.keepProcessing && keepProcessing) {
+                try {
+                    DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+                    String message = dataInputStream.readUTF();
+                    if (Objects.nonNull(socketClientCallback)) {
+                        socketClientCallback.onMessageReceived(message);
+                    }
+                } catch (EOFException e) {
+                    if (Objects.nonNull(socketClientCallback)) {
+                        socketClientCallback.onConnectionFailure(e);
+                    }
+                    keepProcessing = false;
+                } catch (Exception e) {
+                    socketClientCallback.onConnectionFailure(e);
+                    e.printStackTrace();
+                }
+            }
+        };
+        Thread listenMessageThread = new Thread(listenMessageHandler);
+        listenMessageThread.start();
     }
 
     public void setSocketClientCallback(SocketClientCallback socketClientCallback) {
