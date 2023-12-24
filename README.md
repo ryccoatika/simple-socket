@@ -65,6 +65,10 @@ val socketClientCallback = object : SocketClientCallback {
     override fun onDisconnected() {
         // called when client call disconnect() or server has gone
     }
+
+    override fun onMessageReceived(message: String) {
+        // message received from server
+    }
 }
 socketClient.setSocketClientCallback(socketClientCallback)
 ```
