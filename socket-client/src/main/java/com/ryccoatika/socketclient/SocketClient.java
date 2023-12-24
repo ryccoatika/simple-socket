@@ -2,7 +2,6 @@ package com.ryccoatika.socketclient;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.net.Socket;
 import java.util.Objects;
 
@@ -78,13 +77,11 @@ public class SocketClient {
                     if (Objects.nonNull(socketClientCallback)) {
                         socketClientCallback.onMessageReceived(message);
                     }
-                } catch (EOFException e) {
+                } catch (Exception e) {
                     if (Objects.nonNull(socketClientCallback)) {
                         socketClientCallback.onConnectionFailure(e);
                     }
                     keepProcessing = false;
-                } catch (Exception e) {
-                    socketClientCallback.onConnectionFailure(e);
                     e.printStackTrace();
                 }
             }
