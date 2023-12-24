@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0]
+
+Update:
+    - feat: New callback on Client for receiving message from Server
+    - feat: Server able to disconnect client
+
 ## [0.6.9]
 
 Initial release of Simple Socket, including modules for

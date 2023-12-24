@@ -43,6 +43,7 @@ fun Client(
     var host by remember { mutableStateOf("") }
     var port by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf("") }
+    var incomingMessages by remember { mutableStateOf("") }
     var isConnected by remember { mutableStateOf(false) }
     var socketClient by remember { mutableStateOf<SocketClient?>(null) }
     val socketClientCallback = remember {
@@ -56,6 +57,11 @@ fun Client(
                 Log.i("190401", "onConnectFailure: $e")
                 isConnected = false
                 socketClient = null
+            }
+
+            override fun onMessageReceived(message: String) {
+                Log.i("190401", "onMessageReceived: $message")
+                incomingMessages = message
             }
 
             override fun onDisconnected() {
@@ -140,6 +146,10 @@ fun Client(
             }
             Spacer(Modifier.height(30.dp))
             if (isConnected) {
+                if (incomingMessages.isNotEmpty()) {
+                    Text("Incoming message from server:\n$incomingMessages")
+                }
+                Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
                     value = message,
                     label = {

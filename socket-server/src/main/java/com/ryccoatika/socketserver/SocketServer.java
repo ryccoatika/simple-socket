@@ -113,6 +113,25 @@ public class SocketServer {
         sendMessageThread.start();
     }
 
+    public void disconnectClient(Client client) {
+        Runnable disconnectHandler = () -> {
+            try {
+                Socket socket = connectedClients.get(client);
+                assert socket != null;
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
+                if (Objects.nonNull(socketServerCallback)) {
+                    socketServerCallback.onClientDisconnected(client);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+        Thread sendMessageThread = new Thread(disconnectHandler);
+        sendMessageThread.start();
+    }
+
     public int getPort() {
         return serverSocket.getLocalPort();
     }
@@ -122,70 +141,3 @@ public class SocketServer {
         return inetAddress.getAddress().getHostAddress();
     }
 }
-
-/*
-* class SocketServer(port: Int = 0) {
-    private var serverSocket: ServerSocket = ServerSocket(port)
-    @Volatile
-    private var keepProcessing = true
-
-    private fun startServer(
-
-    ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            withContext(Dispatchers.IO) {
-                while (true) {
-                    try {
-                        val socket = serverSocket.accept()
-                        listenMessage(socket)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    delay(2000)
-                }
-            }
-        }
-    }
-
-    private fun stopServer() {
-
-    }
-
-    private fun listenMessage(socket: Socket) {
-        CoroutineScope(Dispatchers.IO).launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val inputStream = DataInputStream(socket.getInputStream())
-                    while (true) {
-                        if (inputStream.available() > 0) {
-                            incomingMessages.value = Message(
-                                hostAddress = socket.inetAddress.hostAddress ?: "",
-                                message = inputStream.readUTF(),
-                            )
-                            delay(2000)
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    val messages: StateFlow<Message?> = incomingMessages.asStateFlow()
-
-    val address: String?
-        get() = serverSocket.inetAddress.hostAddress
-
-    val port: Int
-        get() = serverSocket.localPort
-
-    fun shutdownServer() {
-        CoroutineScope(Dispatchers.IO).launch {
-            withContext(Dispatchers.IO) {
-                serverSocket.close()
-            }
-        }
-    }
-}
-* */
