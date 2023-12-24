@@ -113,6 +113,25 @@ public class SocketServer {
         sendMessageThread.start();
     }
 
+    public void disconnectClient(Client client) {
+        Runnable disconnectHandler = () -> {
+            try {
+                Socket socket = connectedClients.get(client);
+                assert socket != null;
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
+                if (Objects.nonNull(socketServerCallback)) {
+                    socketServerCallback.onClientDisconnected(client);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+        Thread sendMessageThread = new Thread(disconnectHandler);
+        sendMessageThread.start();
+    }
+
     public int getPort() {
         return serverSocket.getLocalPort();
     }
